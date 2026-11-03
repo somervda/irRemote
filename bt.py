@@ -3,6 +3,12 @@ import bluetooth
 import struct
 from micropython import const
 
+from ir_tx import Player
+from sys import platform
+import time
+from machine import Pin
+from keys import Keys
+
 # Bluetooth event codes
 _IRQ_CENTRAL_CONNECT = const(1)
 _IRQ_CENTRAL_DISCONNECT = const(2)
@@ -28,6 +34,8 @@ SERVICE = (
     (CHARACTERISTIC,),
 )
 
+pin17 = Pin(17, Pin.OUT, value = 0)
+
 
 class BLEStringServer:
 
@@ -49,6 +57,9 @@ class BLEStringServer:
         )
 
         self.advertise()
+
+        self.keys=Keys("keys.ir")
+        print(self.keys.list())
 
     def advertise(self):
         # BLE advertising payload: flags and device name
@@ -91,8 +102,44 @@ class BLEStringServer:
                 )
 
                 print("Received:", message)
+                self.handle_command(str(message))
+                
+    def handle_command(self,command):
+        """Handle remote commands in the format '<operation> <parameter>'.
 
+        Operations
+        ----------
+        T <key>   Transmit a single T-series key  (e.g. 'T 1', 'T Menu')
+        D <key>   Transmit a single D-series key  (e.g. 'D Stop', 'D Popup')
+        Y <Key>   Transmit a single Y-series key  (e.g. 'Y Tuner' to swap yamaha reciever to the tuner input)
+        M <digits> Transmit up to 3 T-series keys in sequence
+                    (e.g. 'M 123' → T 1, T 2, T 3)
+                    (e.g. 'M 602' → T 6, T 0, T 2)
+        """
+        parts = command.split()
 
+        if len(parts) < 2:
+            print(f"Invalid command: {command!r}  (expected '<operation> <parameter>')")
+            return
+
+        operation, parameter = parts[0].upper(), parts[1]
+        print(f"Operation:{operation} Parameter:{parameter}")
+
+        ir = Player(pin17,verbose=True)
+        
+
+        if operation == "M":
+            # Each character (up to 3) becomes a T-series key, sent in order``
+            for digit in parameter[:3]:
+                times=self.keys.get(command)
+                ir.play(times)
+                time.sleep(0.1)
+        else:
+            times=self.keys.get(command)
+            ir.play(times)
+        
+            
+            
 # Start the BLE server
 server = BLEStringServer()
 
