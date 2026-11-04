@@ -125,19 +125,32 @@ class BLEStringServer:
         operation, parameter = parts[0].upper(), parts[1]
         print(f"Operation:{operation} Parameter:{parameter}")
 
-        ir = Player(pin17,verbose=True)
-        
+
 
         if operation == "M":
+            print(f"M {parameter}")
             # Each character (up to 3) becomes a T-series key, sent in order``
             for digit in parameter[:3]:
-                times=self.keys.get(command)
-                ir.play(times)
+                print(digit)
+                keyname=(f"T {str(digit)}")
+                print(keyname)
+                times=self.keys.get(keyname)
+                print(times)
+                if times:
+                    ir = Player(pin17,verbose=True)
+                    print(f"Playing {keyname}")
+                    ir.play(times)
+                else:
+                    print(f"key not found: {keyname}")
+                # Short delay between it transmitions of multiple keys
                 time.sleep(0.1)
         else:
             times=self.keys.get(command)
-            ir.play(times)
-        
+            if times:
+                ir = Player(pin17,verbose=True)
+                ir.play(times)
+            else:
+                print(f"command not found: {command}")    
             
             
 # Start the BLE server
