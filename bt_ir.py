@@ -17,8 +17,8 @@ _IRQ_CENTRAL_CONNECT = const(1)
 _IRQ_CENTRAL_DISCONNECT = const(2)
 _IRQ_GATTS_WRITE = const(3)
 
-SERVICE_UUID = bluetooth.UUID("12345678-1234-5678-1234-56789abcdef0")
-CHAR_UUID = bluetooth.UUID("12345678-1234-5678-1234-56789abcdef1")
+SERVICE_UUID = bluetooth.UUID("4f7b2c81-9d5a-4e2b-b8f3-6c7d1e0a2930")
+CHAR_UUID = bluetooth.UUID("4f7b2c81-9d5a-4e2b-b8f3-6c7d1e0a2931")
 SERVICE = (SERVICE_UUID, ((CHAR_UUID, bluetooth.FLAG_WRITE),))
 
 IR_PIN = const(17)
@@ -92,6 +92,7 @@ class BLEStringServer:
         try:
             # Construct a fresh Player, as in the original implementation.
             player = Player(self.ir_pin, verbose=True)
+            print(f"{keyname} {timings}")
             player.play(timings)
         except (OSError, ValueError) as exc:
             print("IR transmission failed for {}: {}".format(keyname, exc))
@@ -133,6 +134,7 @@ class BLEStringServer:
                 if index < len(parameter) - 1:
                     time.sleep_ms(INTER_KEY_DELAY_MS)
             return True
+
 
         # Preserve the spelling/case of the stored key name.
         return self.transmit_key(operation + " " + parameter)

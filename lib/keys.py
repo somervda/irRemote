@@ -48,9 +48,16 @@ class Keys:
             self.keys = {}
 
     def get(self, name):
-        """Return key timing data or None if not found."""
-        return self.keys.get(name)
+        """Return key timing data or None if not found.
+           I ran into issue with PIO where array values higher than 64K were 
+           truncated so I added a line to set a maximum timing value"""
 
+        if self.keys.get(name):
+            data  = tuple(min(value, 65530) for value in self.keys.get(name))
+            return data
+        else:
+            return None
+    
     def list(self):
         """Return a list of all available key names."""
         return list(self.keys.keys())
