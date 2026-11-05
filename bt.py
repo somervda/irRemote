@@ -128,17 +128,12 @@ class BLEStringServer:
 
 
         if operation == "M":
-            print(f"M {parameter}")
             # Each character (up to 3) becomes a T-series key, sent in order``
             for digit in parameter[:3]:
-                print(digit)
                 keyname=(f"T {str(digit)}")
-                print(keyname)
                 times=self.keys.get(keyname)
-                print(times)
                 if times:
                     ir = Player(pin17,verbose=True)
-                    print(f"Playing {keyname}")
                     ir.play(times)
                 else:
                     print(f"key not found: {keyname}")
