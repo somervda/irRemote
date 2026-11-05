@@ -1,5 +1,5 @@
 
-class KEYS:
+class Keys:
     def __init__(self, filepath):
         """Initialize KEYS and load IR key definitions."""
         self.keys = {}

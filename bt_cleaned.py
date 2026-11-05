@@ -112,7 +112,7 @@ class BLEStringServer:
             print("Invalid command: expected a string")
             return False
 
-        parts = command.strip().split(maxsplit=1)
+        parts = command.strip().split()
         if len(parts) != 2:
             print("Invalid command: expected '<operation> <parameter>'")
             return False
