@@ -24,7 +24,7 @@ SERVICE = (SERVICE_UUID, ((CHAR_UUID, bluetooth.FLAG_WRITE),))
 IR_PIN = const(17)
 MAX_COMMAND_BYTES = const(100)
 MAX_PENDING_COMMANDS = const(8)
-INTER_KEY_DELAY_MS = const(100)
+INTER_KEY_DELAY_MS = const(500)
 
 
 class BLEStringServer:
