@@ -78,9 +78,20 @@ class BLEStringServer:
                 print("Ignoring BLE write: invalid UTF-8")
                 return
             self.pending_commands.append(command)
+    
+    def logger(self,logstring):
+        with open('log.txt', 'a')  as log:
+            # Write a log record
+            # 1. Get the local time tuple 
+            # (year, month, mday, hour, minute, second, weekday, yearday)
+            t = time.localtime()
+            # 2. Format using an f-string with zero-padding (:02d means 2 digits, padded with 0)
+            readable_time = f"{t[0]}-{t[1]:02d}-{t[2]:02d} {t[3]:02d}:{t[4]:02d}:{t[5]:02d}"
+            log.write(f"{readable_time} {logstring}" + "\n")
 
     def transmit_key(self, keyname):
         """Transmit a stored IR key. Return True on success, False otherwise."""
+        self.logger(f"transmit_key: {keyname}")
         timings = self.keys.get(keyname)
         if timings is None:
             print("IR key not found:", keyname)
@@ -109,9 +120,11 @@ class BLEStringServer:
 
         Return True if all requested keys transmit; otherwise False.
         """
+
         if not isinstance(command, str):
             print("Invalid command: expected a string")
             return False
+        self.logger(f"handle_command: {command}")
 
         parts = command.strip().split()
         if len(parts) != 2:
@@ -163,6 +176,6 @@ class BLEStringServer:
         self.ir_pin.value(0)
 
 
-if __name__ == "__main__":
-    server = BLEStringServer()
-    server.run()
+print("bt_ir started")
+server = BLEStringServer()
+server.run()
