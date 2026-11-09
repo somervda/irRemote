@@ -116,6 +116,7 @@ class BLEStringServer:
         T <key>      Send a T-series key, e.g. 'T 1' or 'T Menu'.
         D <key>      Send a D-series key, e.g. 'D Stop'.
         Y <key>      Send a Y-series key, e.g. 'Y Tuner'.
+        R <key>      Send a R-series key, e.g. 'R Pwr'.
         M <digits>   Send 1 to 3 T-series digit keys, e.g. 'M 602'.
 
         Return True if all requested keys transmit; otherwise False.
@@ -133,7 +134,7 @@ class BLEStringServer:
 
         operation = parts[0].upper()
         parameter = parts[1].strip()
-        if operation not in ("T", "D", "Y", "M") or not parameter:
+        if operation not in ("T", "D", "Y", "R", "M") or not parameter:
             print("Invalid operation or missing parameter:", command)
             return False
 
