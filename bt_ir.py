@@ -24,7 +24,8 @@ SERVICE = (SERVICE_UUID, ((CHAR_UUID, bluetooth.FLAG_WRITE),))
 IR_PIN = const(17)
 MAX_COMMAND_BYTES = const(100)
 MAX_PENDING_COMMANDS = const(8)
-INTER_KEY_DELAY_MS = const(500)
+INTER_KEY_DELAY_MS = const(250)
+PAUSE_DELAY_MS = const(500)
 
 
 class BLEStringServer:
@@ -110,48 +111,50 @@ class BLEStringServer:
             return False
         return True
 
+    
     def handle_command(self, command):
-        """Validate and execute a BLE command.
+        """Execute one or more comma-separated BLE commands in order.
 
-        T <key>      Send a T-series key, e.g. 'T 1' or 'T Menu'.
-        D <key>      Send a D-series key, e.g. 'D Stop'.
-        Y <key>      Send a Y-series key, e.g. 'Y Tuner'.
-        R <key>      Send a R-series key, e.g. 'R Pwr'.
-        M <digits>   Send 1 to 3 T-series digit keys, e.g. 'M 602'.
+        T/D/Y/R <key>  Transmit the corresponding stored IR key.
+        U P          Pause for PAUSE_DELAY_MS milliseconds.
 
-        Return True if all requested keys transmit; otherwise False.
+        Wait INTER_KEY_DELAY_MS between commands (not after the last).
+        Return False and stop on the first invalid or failed command.
         """
-
         if not isinstance(command, str):
             print("Invalid command: expected a string")
             return False
+
         self.logger(f"handle_command: {command}")
+        commands = command.split(",")
 
-        parts = command.strip().split()
-        if len(parts) != 2:
-            print("Invalid command: expected '<operation> <parameter>'")
-            return False
-
-        operation = parts[0].upper()
-        parameter = parts[1].strip()
-        if operation not in ("T", "D", "Y", "R", "M") or not parameter:
-            print("Invalid operation or missing parameter:", command)
-            return False
-
-        if operation == "M":
-            if not (1 <= len(parameter) <= 3) or not all("0" <= c <= "9" for c in parameter):
-                print("Invalid M command: provide 1 to 3 digits")
+        for index, item in enumerate(commands):
+            parts = item.strip().split()
+            if len(parts) != 2:
+                print("Invalid command: expected '<operation> <parameter>'")
                 return False
-            for index, digit in enumerate(parameter):
-                if not self.transmit_key("T " + digit):
-                    return False  # Stop the sequence after a failed key.
-                if index < len(parameter) - 1:
-                    time.sleep_ms(INTER_KEY_DELAY_MS)
-            return True
 
+            operation = parts[0].upper()
+            parameter = parts[1]
 
-        # Preserve the spelling/case of the stored key name.
-        return self.transmit_key(operation + " " + parameter)
+            if operation == "U":
+                if parameter.upper() != "P":
+                    print("Invalid U command: expected 'U P'")
+                    return False
+                time.sleep_ms(PAUSE_DELAY_MS)
+            elif operation in ("T", "D", "Y", "R"):
+                # Preserve the spelling/case of the stored IR key name.
+                if not self.transmit_key(operation + " " + parameter):
+                    return False
+            else:
+                print("Invalid operation:", operation)
+                return False
+
+            if index < len(commands) - 1:
+                time.sleep_ms(INTER_KEY_DELAY_MS)
+
+        return True
+
 
     def run(self):
         """Process queued BLE commands until interrupted."""
